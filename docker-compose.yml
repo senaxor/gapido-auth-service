@@ -1,0 +1,57 @@
+services:
+  mongo:
+    image: mongo:7
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    ports:
+      - "15672:15672" # management UI (guest/guest)
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  server:
+    build: .
+    env_file: .env
+    ports:
+      - "50051:50051"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import grpc
+          from grpc_health.v1 import health_pb2, health_pb2_grpc
+          channel = grpc.insecure_channel("localhost:50051")
+          response = health_pb2_grpc.HealthStub(channel).Check(
+              health_pb2.HealthCheckRequest(service=""), timeout=3)
+          raise SystemExit(0 if response.status == 1 else 1)
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  worker:
+    build: .
+    command: ["python", "-m", "gapido_auth.worker"]
+    env_file: .env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  mongo_data:

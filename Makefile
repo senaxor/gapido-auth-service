@@ -1,7 +1,13 @@
-.PHONY: install proto test test-integration up down logs
+.PHONY: install env proto test test-integration up down logs
 
 install:
 	pip install -e ".[dev]"
+
+# Create .env from the template with freshly generated secrets.
+env:
+	cp -n .env.example .env
+	sed -i "s|^JWT_SECRET=.*|JWT_SECRET=$$(python3 -c 'import secrets; print(secrets.token_urlsafe(48))')|" .env
+	sed -i "s|^OTP_PEPPER=.*|OTP_PEPPER=$$(python3 -c 'import secrets; print(secrets.token_urlsafe(48))')|" .env
 
 proto:
 	python -m grpc_tools.protoc -Iprotos \
