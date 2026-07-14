@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package gapido.demo.v1;
+
+// Three methods exercising the three access levels required by the challenge.
+service DemoService {
+  // Accessible by everyone, no token required.
+  rpc GetPublicNotice(Empty) returns (PublicNotice);
+  // Requires a valid access token (any role).
+  rpc GetMyProfile(Empty) returns (Profile);
+  // Requires the admin role.
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+}
+
+message Empty {}
+
+message PublicNotice {
+  string message = 1;
+}
+
+message Profile {
+  string user_id = 1;
+  string phone = 2;
+  string role = 3;
+  string created_at = 4; // RFC 3339
+}
+
+message ListUsersRequest {
+  int32 page = 1;      // 1-based, defaults to 1
+  int32 page_size = 2; // defaults to 20, max 100
+}
+
+message ListUsersResponse {
+  repeated Profile users = 1;
+  int64 total = 2;
+}

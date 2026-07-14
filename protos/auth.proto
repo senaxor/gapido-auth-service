@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package gapido.auth.v1;
+
+// Passwordless phone + OTP authentication.
+//
+// Flow:
+//   1. RequestOtp(phone)          -> OTP is queued to RabbitMQ and delivered by SMS.
+//   2. VerifyOtp(phone, code)     -> creates the user on first login, returns token pair.
+//   3. RefreshToken(refresh)      -> rotates the refresh token, returns a new pair.
+//   4. Logout(refresh)            -> revokes the refresh token family.
+service AuthService {
+  rpc RequestOtp(RequestOtpRequest) returns (RequestOtpResponse);
+  rpc VerifyOtp(VerifyOtpRequest) returns (TokenPair);
+  rpc RefreshToken(RefreshTokenRequest) returns (TokenPair);
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+}
+
+message RequestOtpRequest {
+  // Iranian mobile number, e.g. "09123456789".
+  string phone = 1;
+}
+
+message RequestOtpResponse {
+  // Seconds until the code expires.
+  int32 expires_in = 1;
+  // Seconds the client must wait before asking for another code.
+  int32 retry_after = 2;
+}
+
+message VerifyOtpRequest {
+  string phone = 1;
+  string code = 2;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message LogoutRequest {
+  string refresh_token = 1;
+}
+
+message LogoutResponse {
+  bool revoked = 1;
+}
+
+message TokenPair {
+  // Short-lived JWT, sent as "authorization: Bearer <token>" metadata.
+  string access_token = 1;
+  // Opaque single-use token; rotated on every refresh.
+  string refresh_token = 2;
+  // Access token lifetime in seconds.
+  int32 access_expires_in = 3;
+  string token_type = 4; // always "Bearer"
+}
