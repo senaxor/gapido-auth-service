@@ -9,6 +9,8 @@ description = "Authentication & authorization microservice: gRPC, MongoDB, Rabbi
 requires-python = ">=3.12"
 dependencies = [
     "grpcio>=1.62",
+    "grpcio-health-checking>=1.62",
+    "grpcio-reflection>=1.62",
     "protobuf>=4.25",
     "pymongo>=4.6",
     "pika>=1.3",
