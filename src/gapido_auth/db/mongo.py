@@ -13,6 +13,9 @@ def create_database(config: Config) -> Database:
         config.mongo_uri,
         serverSelectionTimeoutMS=5000,
         connectTimeoutMS=5000,
+        # Return stored datetimes as aware UTC; the whole codebase compares
+        # against timezone-aware datetimes and naive ones would crash.
+        tz_aware=True,
     )
     return client[config.mongo_db]
 

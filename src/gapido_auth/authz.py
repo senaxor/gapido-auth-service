@@ -28,6 +28,11 @@ METHOD_ACCESS: dict[str, Access] = {
     "/gapido.demo.v1.DemoService/GetPublicNotice": Access.PUBLIC,
     "/gapido.demo.v1.DemoService/GetMyProfile": Access.AUTHENTICATED,
     "/gapido.demo.v1.DemoService/ListUsers": Access.ADMIN,
+    # Infrastructure: health checks (docker) and reflection (grpcurl).
+    "/grpc.health.v1.Health/Check": Access.PUBLIC,
+    "/grpc.health.v1.Health/Watch": Access.PUBLIC,
+    "/grpc.reflection.v1.ServerReflection/ServerReflectionInfo": Access.PUBLIC,
+    "/grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo": Access.PUBLIC,
 }
 
 
